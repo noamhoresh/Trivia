@@ -18,18 +18,15 @@ def build_and_send_message(conn, code, msg):
 
 
 def recv_message_and_parse(conn):
-	"""
-	Recieves a new message from given socket.
-	Prints debug info, then parses the message using chatlib.
-	Paramaters: conn (socket object)
-	Returns: cmd (str) and data (str) of the received message. 
-	If error occured, will return None, None
-	"""
-	# Implement Code
-	# ..
-	
-	cmd, msg = chatlib.parse_message(data)
-	return cmd, msg
+
+    data = conn.recv(2048).decode()
+    print("Server Response: " + data)
+    cmd, msg = parse_message(data)
+
+    if cmd is None:
+        print("Problem Occurred")
+
+    return cmd, msg
 	
 	
 
