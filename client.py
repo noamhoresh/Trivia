@@ -43,12 +43,11 @@ def connect():
     Returns:
         socket[socket]:
     """
-    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)# defining the socket
-    server_socket.bind((SERVER_IP, SERVER_PORT))# setting the current ip and port
-    server_socket.listen()# the time it listen to client until closing the socket
-    print("Listening for connections on port %d" % SERVER_PORT)
-    socket, client_address = server_socket.accept()# accept the request
-    return socket
+    my_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)# defining the socket
+    my_socket.connect(("127.0.0.1", 5678))# connect to the server
+    # server_socket.listen()# the time it listen to client until closing the socket
+    print("Connected to server on port %d" % SERVER_PORT)
+    return my_socket
 
 
 def error_and_exit(msg):
@@ -57,26 +56,40 @@ def error_and_exit(msg):
 
 
 def login(conn):
+    """login the client to the server keeps runing until succeeds
+
+    Args:
+        conn (socket)
+    """
     print("Login...")
-    username = input("Please enter username: \n")
-    password = input("Please enter password: \n")
-    data = username + '#' + password  # used for the protocol
+    cnfrm = "start"
+    key_list = list(PROTOCOL_SERVER.keys())   
+    val_list = list(PROTOCOL_SERVER.values())
+    
+    while cnfrm != "login_ok_msg":
+        if cnfrm != "start":
+            print("Wrong username or password please try again!")
+        username = input("Please enter username: \n")
+        password = input("Please enter password: \n")
+        data = username + '#' + password  # used for the protocol
+        build_and_send_message(conn, PROTOCOL_CLIENT["login_msg"], data)
+        print("Data: " + data)
+        answer = conn.recv(2048).decode()# get the answer from the server
+        answer_cmd = split_msg(answer)[0]# takes the specific command
+        cnfrm = key_list[val_list.index(answer_cmd)]# finds the matching key to the answer value
+    
+    print("Login succeed")
 
-    message = build_message('LOGIN', data)
-    print("Msg: " + message)
-    # conn.send(message.encode())
-
-    build_and_send_message(conn, PROTOCOL_CLIENT["logout_msg"], "")
 
 
 def logout(conn):
-    print("Logout...")
+    print("Logging out...")
     build_and_send_message(conn, PROTOCOL_CLIENT["logout_msg"], "")
 
 
 def main():
     conn_sock = connect()
-    print("One Player Connected")
+    print("Connected...")
     login(conn_sock)
     logout(conn_sock)
 
