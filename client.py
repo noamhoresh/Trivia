@@ -3,7 +3,10 @@ from chatlib_skeleton import *  # To use chatlib functions or consts, use chatli
 
 SERVER_IP = "127.0.0.1"  # Our server will run on same computer as client
 SERVER_PORT = 5678
-
+# a way to verify proccesses with the server's and the client's protocols
+KEY_LIST = list(PROTOCOL_SERVER.keys())    
+VAL_LIST = list(PROTOCOL_SERVER.values())
+# ---------------exc 2-----------------
 """
 Builds a new message using chatlib, wanted code and message. 
 Prints debug info, then sends it to the given socket.
@@ -63,8 +66,6 @@ def login(conn):
     """
     print("Login...")
     cnfrm = "start"
-    key_list = list(PROTOCOL_SERVER.keys())   
-    val_list = list(PROTOCOL_SERVER.values())
     
     while cnfrm != "login_ok_msg":
         if cnfrm != "start":
@@ -76,7 +77,7 @@ def login(conn):
         print("Data: " + data)
         answer = conn.recv(2048).decode()# get the answer from the server
         answer_cmd = split_msg(answer)[0]# takes the specific command
-        cnfrm = key_list[val_list.index(answer_cmd)]# finds the matching key to the answer value
+        cnfrm = KEY_LIST[VAL_LIST.index(answer_cmd)]# finds the matching key to the answer value
     
     print("Login succeed")
 
@@ -87,10 +88,49 @@ def logout(conn):
     build_and_send_message(conn, PROTOCOL_CLIENT["logout_msg"], "")
 
 
+# ---------------exc 3-----------------
+def build_send_recv_parse(conn, cmd, data):
+    """send a message to the server and return his response
+
+    Args:
+        conn (socket):connection to the server
+        cmd (str): the protocol's command
+        data (str): the protocol's data
+
+    Returns:
+        msg_code(str): the server's response's command
+        msg(str): the server's response's data
+    """
+    build_and_send_message(conn, cmd, data)
+    msg_code, msg = recv_message_and_parse(conn)
+    return msg_code, msg
+
+
+def get_score(conn):
+    """ask for the current player's score, prints if succeeds or not
+
+    Args:
+        conn (socket)
+    """
+    print("Getting score...")
+    cmd, data = build_send_recv_parse(conn, PROTOCOL_CLIENT["get_score_msg"], "")
+    if KEY_LIST[VAL_LIST.index(cmd)] == "score_ok_msg":
+        print(f'Your current score is: {data}')
+    else:
+        print("The system could not find your score")
+
+
 def main():
     conn_sock = connect()
     print("Connected...")
     login(conn_sock)
+    options = -1# if the client wants to continue playing
+    
+    while options != 0:
+        options = int(input("For logout press: 0 \nFor getting your score press: 1\n"))
+        if options == 1:
+            get_score(conn_sock)
+
     logout(conn_sock)
 
 
