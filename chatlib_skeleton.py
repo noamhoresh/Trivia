@@ -1,5 +1,4 @@
 # Protocol Constants
-
 CMD_FIELD_LENGTH = 16  # Exact length of cmd field (in bytes)
 LENGTH_FIELD_LENGTH = 4  # Exact length of length field (in bytes)
 MAX_DATA_LENGTH = 10 ** LENGTH_FIELD_LENGTH - 1  # Max size of data field according to protocol
@@ -12,16 +11,28 @@ DELIMITER = "|"  # Delimiter character in protocol
 
 PROTOCOL_CLIENT = {
     "login_msg": "LOGIN",
-    "logout_msg": "LOGOUT"
+    "logout_msg": "LOGOUT",
+    "get_score_msg": "MY_SCORE",
+    "get_question_msg": "GET_QUESTION",
+    "send_answer_msg": "SEND_ANSWER",
+    "get_highscore_msg": "HIGHSCORE",
+    "get_logged_msg": "LOGGED"
 }  # .. Add more commands if needed
 
 PROTOCOL_SERVER = {
     "login_ok_msg": "LOGIN_OK",
-    "login_failed_msg": "ERROR"
+    "login_failed_msg": "ERROR",
+    "score_ok_msg": "YOUR_SCORE",
+    "no_questions_msg": "NO_QUESTIONS",
+    "ok_get_questions_msg": "YOUR_QUESTION",
+    "ok_correct_answer": "CORRECT_ANSWER",
+    "wrong_answer": "WRONG_ANSWER",
+    "ok_get_highscore_msg": "ALL_SCORE",
+    "ok_get_logged_msg": "LOGGED_ANSWER"
 }  # ..  Add more commands if needed
 
-# Other constants
 
+# Other constants
 ERROR = None  # What is returned in case of an error
 
 
@@ -46,14 +57,14 @@ def parse_message(msg):
 
     if len(data) != 3:
         return ERROR, ERROR
-    if not (data[0] in (PROTOCOL_CLIENT.values() or PROTOCOL_SERVER.values())):
+    if not (data[0] in PROTOCOL_CLIENT.values() or data[0] in PROTOCOL_SERVER.values()):
         return ERROR, ERROR
     if len(data[0]) > 16 or len(data[1]) > 4 or len(data[2]) > MAX_DATA_LENGTH:
-        return ERROR
+        return ERROR, ERROR
     if not data[1].isdigit():
         return ERROR, ERROR
-    if int(data[1]) != len(data[2]):
-        return ERROR, ERROR
+    # if int(data[1]) != len(data[2]):
+    #     return ERROR, ERROR
 
     return data[0], data[2]
 
