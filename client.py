@@ -14,11 +14,9 @@ Paramaters: conn (socket object), code (str), msg ( .str)
 Returns: Nothing
 """
 
-
 def build_and_send_message(conn, code, msg):
     message = build_message(code, msg)
     conn.send(message.encode())
-
 
 """
 Recieves a new message from given socket.
@@ -27,7 +25,6 @@ Paramaters: conn (socket object)
 Returns: cmd (str) and data (str) of the received message.
 If error occured, will return None, None
 """
-
 
 def recv_message_and_parse(conn):
 
@@ -40,7 +37,6 @@ def recv_message_and_parse(conn):
 
     return cmd, msg
 
-
 def connect():
     """connect the client to the server
     Returns:
@@ -52,11 +48,9 @@ def connect():
     print("Connected to server on port %d" % SERVER_PORT)
     return my_socket
 
-
 def error_and_exit(msg):
     print(msg)
     exit()
-
 
 def login(conn):
     """login the client to the server keeps runing until succeeds
@@ -81,12 +75,9 @@ def login(conn):
     
     print("Login succeed")
 
-
-
 def logout(conn):
     print("Logging out...")
     build_and_send_message(conn, PROTOCOL_CLIENT["logout_msg"], "")
-
 
 # ---------------exc 3-----------------
 def build_send_recv_parse(conn, cmd, data):
@@ -105,7 +96,6 @@ def build_send_recv_parse(conn, cmd, data):
     msg_code, msg = recv_message_and_parse(conn)
     return msg_code, msg
 
-
 def get_score(conn):
     """ask for the current player's score, prints if succeeds or not
 
@@ -119,6 +109,50 @@ def get_score(conn):
     else:
         print("The system could not find your score")
 
+# ---------------exc 4-----------------
+def play_question(conn):
+    """ask for a question fro, the server then tell if he was right or wrong
+
+    Args:
+        conn (socket)
+    """
+    cmd, data = build_send_recv_parse(conn, PROTOCOL_CLIENT["get_question_msg"], "")# asking for a question
+    
+    if cmd == PROTOCOL_SERVER["no_questions_msg"]:
+        print("There are no questions left...")
+    
+    elif cmd == PROTOCOL_SERVER["ok_get_questions_msg"] :
+        dev_data = data.split('#')# the data of a question from the server is devided by '#'
+        print(f'Question Id: {dev_data[0]} The question: {dev_data[1]}\n1.{dev_data[2]}\n2.{dev_data[3]}\n3.{dev_data[4]}\n4.{dev_data[5]}')# shows the question to the client
+        answ_chosen = input("Enter your selected answer number: ")
+        cmd, data = build_send_recv_parse(conn, PROTOCOL_CLIENT["send_answer_msg"], dev_data[0] + '#' + answ_chosen)# sending the client's answer
+        
+        if cmd == PROTOCOL_SERVER["ok_correct_answer"]:# the answer was right
+            print(f'Excellent! You were right, the answer was: {dev_data[int(answ_chosen)+1]}')
+        
+        if cmd == PROTOCOL_SERVER["wrong_answer"]:
+            print(f'You were wrong, the right answer was: {dev_data[int(data) +1]} and you chose {dev_data[int(answ_chosen)+1]}')
+    
+    else:
+        print("ERROR")
+    
+    return
+
+def get_highscore(conn):
+    cmd, data = build_send_recv_parse(conn, PROTOCOL_CLIENT["get_highscore_msg"], "")# asking for highscore table
+    if cmd == PROTOCOL_SERVER["ok_get_highscore_msg"]:
+        print(data)
+    else:
+        print("A problem occured")
+        return
+
+def get_loggeed_users(conn):
+    cmd, data = build_send_recv_parse(conn, PROTOCOL_CLIENT["get_logged_msg"], "")#asking for logged users
+    if cmd == PROTOCOL_SERVER["ok_get_logged_msg"]:
+        print(data)
+    else:
+        print("A problem occured")
+        return
 
 def main():
     conn_sock = connect()
@@ -127,12 +161,18 @@ def main():
     options = -1# if the client wants to continue playing
     
     while options != 0:
-        options = int(input("For logout press: 0 \nFor getting your score press: 1\n"))
+        print("-------------------------------------------------")
+        options = int(input("For logout press: 0 \nFor getting your score press: 1\nFor question press: 2 \nFor highscores press: 3 \nFor logged users press: 4\n"))
         if options == 1:
             get_score(conn_sock)
+        elif options == 2:
+            play_question(conn_sock)
+        elif options == 3:
+            get_highscore(conn_sock)
+        elif options == 4:
+            get_loggeed_users(conn_sock)
 
     logout(conn_sock)
-
 
 if __name__ == '__main__':
     main()
