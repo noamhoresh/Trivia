@@ -18,15 +18,27 @@ SERVER_IP = "127.0.0.1"
 # HELPER SOCKET METHODS
 
 def build_and_send_message(conn, code, msg):
-	## copy from client
-	
-	print("[SERVER] ",full_msg)	  # Debug print
+    message = build_message(code, msg)
+    conn.send(message.encode())
+
+"""
+Recieves a new message from given socket.
+Prints debug info, then parses the message using chatlib.
+Paramaters: conn (socket object)
+Returns: cmd (str) and data (str) of the received message.
+If error occured, will return None, None
+"""
 
 def recv_message_and_parse(conn):
-	## copy from client
-	
-	print("[CLIENT] ",full_msg)	  # Debug print
-	
+
+    data = conn.recv(2048).decode()
+    print("Server Response: " + data)
+    cmd, msg = parse_message(data)
+
+    if cmd is None:
+        print("Problem Occurred")
+
+    return cmd, msg
 
 
 # Data Loaders #
