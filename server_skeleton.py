@@ -165,8 +165,23 @@ def handle_client_message(conn, cmd, data):
 	Returns: None
 	"""
 	global logged_users	 # To be used later
-	
-	# Implement code ...
+	if cmd == "LOGIN":
+		handle_login_message(conn,data)
+	elif cmd == "LOGOUT":
+		handle_logout_message(conn)
+	elif cmd == "LOGGED":
+		pass
+	elif cmd == "GET_QUESTION":
+		pass
+	elif cmd == "SEND_ANSWER":
+		pass
+	elif cmd == "MY_SCORE":
+		handle_getscore_message(conn,data.split("#")[0])
+	elif cmd == "HIGHSCORE":
+		pass
+	else:
+		send_error()
+
 	
 
 def main():
