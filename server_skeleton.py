@@ -91,8 +91,8 @@ def setup_socket():
     server_socket.bind((SERVER_IP, SERVER_PORT))# setting the current ip and port
     server_socket.listen()# the time it listen to client until closing the socket
     print("Listening for connections on port %d" % SERVER_PORT)
-    # client_socket, client_address = server_socket.accept()# accept the request
-    return client_socket
+    
+    return server_socket
 	
 
 		
@@ -184,6 +184,8 @@ def handle_client_message(conn, cmd, data):
 		handle_getscore_message(conn,data.split("#")[0])
 	elif cmd == "HIGHSCORE":
 		pass
+	elif cmd == "" and data == "":
+		conn.close()
 	else:
 		send_error()
 
@@ -195,8 +197,12 @@ def main():
 	global questions
 	
 	print("Welcome to Trivia Server!")
-	
-	# Implement code ...
+	server_socket = setup_socket()
+	while True:
+        client_socket, client_address = server_socket.accept()# accept the request
+        print('New connection received')
+		cmd, data = recv_message_and_parse(client_socket)
+        handle_client_message(client_socket, cmd, data)
 
 
 if __name__ == '__main__':
