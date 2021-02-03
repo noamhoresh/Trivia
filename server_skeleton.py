@@ -87,7 +87,7 @@ def setup_socket():
 	Recieves: -
 	Returns: the socket object
 	"""
-	
+
 	server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)# defining the socket
     server_socket.bind((SERVER_IP, SERVER_PORT))# setting the current ip and port
     server_socket.listen()# the time it listen to client until closing the socket
@@ -139,18 +139,24 @@ def handle_login_message(conn, data):
 	global logged_users	 # To be used later
 	server_response = ""
 	login_details = data.split("#")
-	for i in users:
-		user_details = i.split(DELIMITER)
-		if login_details[0] != user_details[0] or login_details[1] != user_details[1]:
-			server_response = "User Does Not Exists"
-
+	
 	if len(login_details) != 2:
 		server_response = "Invalid Data For Login"
-	else:
-		logged_users
-		build_and_send_message(conn,"LOGIN_OK","")
-		return
+	
+	else: 
+		client_user_name = login_details[0]
+		if client_user_name in users.keys():# if the user name exists
+			client_password = login_details[1]
+			
+			if client_password == users[client_user_name]:# if the password exists
+				build_and_send_message(conn, PROTOCOL_SERVER["login_ok_msg"], "")
+				logged_users[client_user_name] = client_password# add the user to the logged dictionary
+				return
+		
+		server_response = "User Name Or Password Does Not Exists"		
+	
 	send_error(server_response)
+	return
 
 
 
