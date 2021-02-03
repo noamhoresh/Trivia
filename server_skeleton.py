@@ -87,6 +87,7 @@ def setup_socket():
 	Recieves: -
 	Returns: the socket object
 	"""
+	
 	server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)# defining the socket
     server_socket.bind((SERVER_IP, SERVER_PORT))# setting the current ip and port
     server_socket.listen()# the time it listen to client until closing the socket
@@ -149,7 +150,7 @@ def handle_login_message(conn, data):
 		logged_users
 		build_and_send_message(conn,"LOGIN_OK","")
 		return
-	build_and_send_message(conn, "ERROR", server_response)
+	send_error(server_response)
 
 
 
