@@ -3,12 +3,24 @@
 ##############################################################################
 
 import socket
-import chatlib
+from chatlib_skeleton import *
 
 # GLOBALS
-users = {}
+users = {
+		"abc|123|0|",
+		"test|test|0|",
+		"admin|AaBbCcDd#|0|",
+		"blabla|hello|0|",
+		"super|trooper|0|",
+		"super2|trooper2|0|",
+		"bilby|m0unt41ns|0|",
+		"trivia_king|KING|0|",
+		"hackerman|TriCeRaCop|0|",
+		"mrhemulin|flowerz|0|0",
+		"bambababy|peanuts|5|0,2",
+		}
 questions = {}
-logged_users = {} # a dictionary of client hostnames to usernames - will be used later
+logged_users = {}  # a dictionary of client hostnames to usernames - will be used later
 
 ERROR_MSG = "Error! "
 SERVER_PORT = 5678
@@ -18,28 +30,21 @@ SERVER_IP = "127.0.0.1"
 # HELPER SOCKET METHODS
 
 def build_and_send_message(conn, code, msg):
-    message = build_message(code, msg)
-    conn.send(message.encode())
+	message = build_message(code, msg)
+	conn.send(message.encode())
+	print("[SERVER] ", message)	  # Debug print
 
-"""
-Recieves a new message from given socket.
-Prints debug info, then parses the message using chatlib.
-Paramaters: conn (socket object)
-Returns: cmd (str) and data (str) of the received message.
-If error occured, will return None, None
-"""
 
 def recv_message_and_parse(conn):
+	data = conn.recv(2048).decode()
+	print("Client Response: " + data)
+	cmd, msg = parse_message(data)
 
-    data = conn.recv(2048).decode()
-    print("Server Response: " + data)
-    cmd, msg = parse_message(data)
+	if cmd is None:
+		print("Problem Occurred")
 
-    if cmd is None:
-        print("Problem Occurred")
-
-    return cmd, msg
-
+	return cmd, msg
+	
 
 # Data Loaders #
 
@@ -124,8 +129,25 @@ def handle_login_message(conn, data):
 	"""
 	global users  # This is needed to access the same users dictionary from all functions
 	global logged_users	 # To be used later
-	
-	# Implement code ...
+	server_response = ""
+	login_details = data.split("#")
+	for i in users:
+		user_details = i.split(DELIMITER)
+		if login_details[0] != user_details[0] or login_details[1] != user_details[1]:
+			server_response = "User Does Not Exists"
+
+	if len(login_details) != 2:
+		server_response = "Invalid Data For Login"
+	else:
+		logged_users
+		build_and_send_message(conn,"LOGIN_OK","")
+		return
+	build_and_send_message(conn, "ERROR", server_response)
+
+
+
+
+
 
 
 def handle_client_message(conn, cmd, data):
@@ -139,7 +161,6 @@ def handle_client_message(conn, cmd, data):
 	# Implement code ...
 	
 
-
 def main():
 	# Initializes global users and questions dicionaries using load functions, will be used later
 	global users
@@ -150,8 +171,5 @@ def main():
 	# Implement code ...
 
 
-
 if __name__ == '__main__':
 	main()
-
-	
