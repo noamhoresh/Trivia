@@ -88,12 +88,12 @@ def setup_socket():
 	Returns: the socket object
 	"""
 	
-	server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)# defining the socket
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)# defining the socket
     server_socket.bind((SERVER_IP, SERVER_PORT))# setting the current ip and port
     server_socket.listen()# the time it listen to client until closing the socket
     print("Listening for connections on port %d" % SERVER_PORT)
     # client_socket, client_address = server_socket.accept()# accept the request
-	return client_socket
+    return client_socket
 	
 
 		
