@@ -7,19 +7,23 @@ from chatlib_skeleton import *
 
 # GLOBALS
 users = {
-		"abc|123|0|",
-		"test|test|0|",
-		"admin|AaBbCcDd#|0|",
-		"blabla|hello|0|",
-		"super|trooper|0|",
-		"super2|trooper2|0|",
-		"bilby|m0unt41ns|0|",
-		"trivia_king|KING|0|",
-		"hackerman|TriCeRaCop|0|",
-		"mrhemulin|flowerz|0|0",
-		"bambababy|peanuts|5|0,2",
-		}
-questions = {}
+	"abc|123|0|",
+	"test|test|0|",
+	"admin|AaBbCcDd#|0|",
+	"blabla|hello|0|",
+	"super|trooper|0|",
+	"super2|trooper2|0|",
+	"bilby|m0unt41ns|0|",
+	"trivia_king|KING|0|",
+	"hackerman|TriCeRaCop|0|",
+	"mrhemulin|flowerz|0|0",
+	"bambababy|peanuts|5|0,2",
+	}
+questions = {
+            "What is the capital city of USA?|Washington DC|New York|Los Angeles|Detroit|1",
+	    "Who wrote the song ""Yellow submarine""?|Elvis Presley|The Beatles|Led Zeppelin|Britney Spears|2",
+	    "How much is 1+1?|5|6|7|2|4"
+	    }
 logged_users = {}  # a dictionary of client hostnames to usernames - will be used later
 
 ERROR_MSG = "Error! "
