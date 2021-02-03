@@ -28,7 +28,8 @@ PROTOCOL_SERVER = {
     "ok_correct_answer": "CORRECT_ANSWER",
     "wrong_answer": "WRONG_ANSWER",
     "ok_get_highscore_msg": "ALL_SCORE",
-    "ok_get_logged_msg": "LOGGED_ANSWER"
+    "ok_get_logged_msg": "LOGGED_ANSWER",
+    "error_cmd": "ERROR"
 }  # ..  Add more commands if needed
 
 
