@@ -87,7 +87,7 @@ def setup_socket():
 	Recieves: -
 	Returns: the socket object
 	"""
-
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)# defining the socket
     server_socket.bind((SERVER_IP, SERVER_PORT))# setting the current ip and port
     server_socket.listen()# the time it listen to client until closing the socket
     print("Listening for connections on port %d" % SERVER_PORT)
