@@ -111,8 +111,14 @@ def send_error(conn, error_msg):
 
 
 def handle_getscore_message(conn, username):
-	global users
-	final_str = ""
+	"""send the client his current score
+
+	Args:
+		conn (socket)
+		username (str)
+	"""
+	build_and_send_message(conn, PROTOCOL_SERVER["score_ok_msg"], users[username][1])
+	
 
 	
 def handle_logout_message(conn):
@@ -122,8 +128,9 @@ def handle_logout_message(conn):
 	Returns: None
 	"""
 	global logged_users
-	
-	# Implement code ...
+	logged_users.pop(conn.getpeername(),None)
+	conn.close()
+	print("Logged Out")
 
 
 def handle_login_message(conn, data):
@@ -148,14 +155,13 @@ def handle_login_message(conn, data):
 			
 			if client_password == users[client_user_name][0]:# if the password exists
 				build_and_send_message(conn, PROTOCOL_SERVER["login_ok_msg"], "")
-				logged_users[client_user_name] = client_password# add the user to the logged dictionary
+				logged_users[conn.getpeername()] = client_user_name # add the user to logged users dict
 				return
 		
 		server_response = "User Name Or Password Does Not Exists"		
 	
 	send_error(server_response)
 	return
-
 
 
 
@@ -180,7 +186,7 @@ def handle_client_message(conn, cmd, data):
 	elif cmd == "SEND_ANSWER":
 		pass
 	elif cmd == "MY_SCORE":
-		handle_getscore_message(conn,data.split("#")[0])
+		handle_getscore_message(conn,data.split("#")[0])# the user_name of the current user
 	elif cmd == "HIGHSCORE":
 		pass
 	elif cmd == "" and data == "":
