@@ -7,17 +7,17 @@ from chatlib_skeleton import *
 
 # GLOBALS
 users = {
-	"abc|123|0|",
-	"test|test|0|",
-	"admin|AaBbCcDd#|0|",
-	"blabla|hello|0|",
-	"super|trooper|0|",
-	"super2|trooper2|0|",
-	"bilby|m0unt41ns|0|",
-	"trivia_king|KING|0|",
-	"hackerman|TriCeRaCop|0|",
-	"mrhemulin|flowerz|0|0",
-	"bambababy|peanuts|5|0,2",
+	"abc": ['123', 0],
+	"test": ["test", 0],
+	"admin": ["AaBbCcDd", 0],
+	"blabla": ["hello", 0],
+	"super": ["trooper", 0],
+	"super2": ["trooper2", 0],
+	"bilby": ["m0unt41ns", 0],
+	"trivia_king": ["KING", 0],
+	"hackerman": ["TriCeRaCop", 0],
+	"mrhemulin": ["flowerz", 0],
+	"bambababy": ["peanuts", 5, (0,2)]
 	}
 questions = {
             "What is the capital city of USA?|Washington DC|New York|Los Angeles|Detroit|1",
@@ -87,12 +87,11 @@ def setup_socket():
 	Recieves: -
 	Returns: the socket object
 	"""
-    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)# defining the socket
-    server_socket.bind((SERVER_IP, SERVER_PORT))# setting the current ip and port
-    server_socket.listen()# the time it listen to client until closing the socket
-    print("Listening for connections on port %d" % SERVER_PORT)
-    
-    return server_socket
+	server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	server_socket.bind((SERVER_IP, SERVER_PORT))
+	server_socket.listen()
+	print("Listening for connections on port %d" % SERVER_PORT)
+	return server_socket
 	
 
 		
@@ -113,7 +112,7 @@ def send_error(conn, error_msg):
 
 def handle_getscore_message(conn, username):
 	global users
-	# Implement this in later chapters
+	final_str = ""
 
 	
 def handle_logout_message(conn):
@@ -144,10 +143,10 @@ def handle_login_message(conn, data):
 	
 	else: 
 		client_user_name = login_details[0]
-		if client_user_name in users.keys():# if the user name exists
+		if client_user_name in users.keys(): # if the user name exists
 			client_password = login_details[1]
 			
-			if client_password == users[client_user_name]:# if the password exists
+			if client_password == users[client_user_name][0]:# if the password exists
 				build_and_send_message(conn, PROTOCOL_SERVER["login_ok_msg"], "")
 				logged_users[client_user_name] = client_password# add the user to the logged dictionary
 				return
@@ -171,7 +170,7 @@ def handle_client_message(conn, cmd, data):
 	"""
 	global logged_users	 # To be used later
 	if cmd == "LOGIN":
-		handle_login_message(conn,data)
+		handle_login_message(conn, data)
 	elif cmd == "LOGOUT":
 		handle_logout_message(conn)
 	elif cmd == "LOGGED":
@@ -199,10 +198,10 @@ def main():
 	print("Welcome to Trivia Server!")
 	server_socket = setup_socket()
 	while True:
-        client_socket, client_address = server_socket.accept()# accept the request
-        print('New connection received')
+		client_socket, client_address = server_socket.accept()
+		print("new connection received")
 		cmd, data = recv_message_and_parse(client_socket)
-        handle_client_message(client_socket, cmd, data)
+		handle_client_message(client_socket, cmd, data)
 
 
 if __name__ == '__main__':

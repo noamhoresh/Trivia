@@ -1,5 +1,5 @@
 import socket
-from chatlib_skeleton import *  # To use chatlib functions or consts, use chatlib.****
+from chatlib_skeleton import *  # To use chatlib functions or consts, use chatlib.**
 
 SERVER_IP = "127.0.0.1"  # Our server will run on same computer as client
 SERVER_PORT = 5678
@@ -70,6 +70,7 @@ def login(conn):
         build_and_send_message(conn, PROTOCOL_CLIENT["login_msg"], data)
         print("Data: " + data)
         answer = conn.recv(2048).decode()# get the answer from the server
+        print("the answer is: " + answer)
         answer_cmd = split_msg(answer)[0]# takes the specific command
         cnfrm = KEY_LIST[VAL_LIST.index(answer_cmd)]# finds the matching key to the answer value
     

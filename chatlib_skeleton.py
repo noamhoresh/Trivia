@@ -38,7 +38,7 @@ ERROR = None  # What is returned in case of an error
 
 
 def build_message(cmd, data):
-    if not (cmd in (PROTOCOL_CLIENT.values() or PROTOCOL_SERVER.values())):
+    if (cmd not in PROTOCOL_CLIENT.values()) and (cmd not in PROTOCOL_SERVER.values()):
         return ERROR
     if len(data) > MAX_DATA_LENGTH or len(cmd) > 16:
         return ERROR
