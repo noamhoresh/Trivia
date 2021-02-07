@@ -109,7 +109,7 @@ def send_error(conn, error_msg):
 
 
 
-##### MESSAGE HANDLING
+#### MESSAGE HANDLING
 
 
 def handle_getscore_message(conn, username):
@@ -119,7 +119,6 @@ def handle_getscore_message(conn, username):
 		username (str)
 	"""
 	build_and_send_message(conn, PROTOCOL_SERVER["score_ok_msg"], str(users[username][1]))
-
 
 
 def handle_logout_message(conn):
@@ -168,7 +167,19 @@ def handle_login_message(conn, data):
 	return
 
 
-
+def create_random_question(Username):
+	"""
+	gets username and returns a question that
+	wasn't played yet
+	if there isn't such question - returns None
+	"""
+	global played_questions
+	questions = load_questions()
+	questions_Id = questions.keys()
+	for q in questions_Id:
+		if not q in played_questions:
+			return str(questions.get(q).get("question") + '#' + questions.get(q).get("answers")[0] + '#' + questions.get(q).get("answers")[1] + '#' + questions.get(q).get("answers")[2] + '#' + questions.get(q).get("answers")[3])
+	return None
 
 
 
@@ -178,6 +189,7 @@ def handle_client_message(conn, cmd, data):
 	Recieves: socket, message code and data
 	Returns: None
 	"""
+	global user_name
 	global logged_users	 # To be used later
 	if cmd == "LOGIN":
 		handle_login_message(conn, data)
@@ -186,9 +198,9 @@ def handle_client_message(conn, cmd, data):
 	elif cmd == "LOGGED":
 		pass
 	elif cmd == "GET_QUESTION":
-		pass
+		handle_question_message(conn, user_name)
 	elif cmd == "SEND_ANSWER":
-		pass
+		handle_answer_message(conn, user_name, data)
 	elif cmd == "MY_SCORE":
 		handle_getscore_message(conn, data.split("#")[0])# the user_name of the current user
 	elif cmd == "HIGHSCORE":
