@@ -6,7 +6,7 @@ MSG_HEADER_LENGTH = CMD_FIELD_LENGTH + 1 + LENGTH_FIELD_LENGTH + 1  # Exact size
 MAX_MSG_LENGTH = MSG_HEADER_LENGTH + MAX_DATA_LENGTH  # Max size of total message
 DELIMITER = "|"  # Delimiter character in protocol
 
-# Protocol Messages 
+# Protocol Messages
 # In this dictionary we will have all the client and server command names
 
 PROTOCOL_CLIENT = {
@@ -29,7 +29,8 @@ PROTOCOL_SERVER = {
     "wrong_answer": "WRONG_ANSWER",
     "ok_get_highscore_msg": "ALL_SCORE",
     "ok_get_logged_msg": "LOGGED_ANSWER",
-    "error_cmd": "ERROR"
+    "error_cmd": "ERROR",
+    "logout_ok_msg": "LOGOUT_OK"
 }  # ..  Add more commands if needed
 
 
