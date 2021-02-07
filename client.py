@@ -1,5 +1,5 @@
 import socket
-from chatlib_skeleton import *  # To use chatlib functions or consts, use chatlib.**
+from chatlib_skeleton import *  # To use chatlib functions or consts, use chatlib.*
 
 SERVER_IP = "127.0.0.1"  # Our server will run on same computer as client
 SERVER_PORT = 5678

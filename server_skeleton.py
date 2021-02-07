@@ -121,7 +121,6 @@ def handle_getscore_message(conn, username):
 	build_and_send_message(conn, PROTOCOL_SERVER["score_ok_msg"], str(users[username][1]))
 
 
-
 def handle_logout_message(conn):
 	"""
 	Closes the given socket (in laster chapters, also remove user from logged_users dictioary)
