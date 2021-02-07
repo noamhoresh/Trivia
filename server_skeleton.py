@@ -121,6 +121,17 @@ def handle_getscore_message(conn, username):
 	build_and_send_message(conn, PROTOCOL_SERVER["score_ok_msg"], str(users[username][1]))
 
 
+def handle_question_message(conn, user_name):
+	"""send the client a random question
+
+	Args:
+		conn (socket):
+		user_name (str): the client's username
+	"""
+	data = create_random_question(user_name)# the question generated in the protocol form
+	build_and_send_message(conn, PROTOCOL_SERVER["ok_get_questions_msg"], data)
+
+
 def handle_logout_message(conn):
 	"""
 	Closes the given socket (in laster chapters, also remove user from logged_users dictioary)
@@ -177,7 +188,7 @@ def create_random_question(Username):
 	questions = load_questions()
 	questions_Id = questions.keys()
 	for q in questions_Id:
-		if not q in played_questions:
+		if not q in played_questions:# יש פונקציה בשביל ז לא צריך לבנות לבד
 			return str(questions.get(q).get("question") + '#' + questions.get(q).get("answers")[0] + '#' + questions.get(q).get("answers")[1] + '#' + questions.get(q).get("answers")[2] + '#' + questions.get(q).get("answers")[3])
 	return None
 
@@ -224,6 +235,7 @@ def main():
 	print("new connection received")
 
 	while flag:
+		#  של cmd שונה מnullאפשר לעשות אתזה עם וויל אם אתם רוצים
 		cmd, data = recv_message_and_parse(client_socket)
 		handle_client_message(client_socket, cmd, data)
 
