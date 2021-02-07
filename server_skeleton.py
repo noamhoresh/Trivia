@@ -109,7 +109,7 @@ def send_error(conn, error_msg):
 
 
 
-##### MESSAGE HANDLING
+#### MESSAGE HANDLING
 
 
 def handle_getscore_message(conn, username):
