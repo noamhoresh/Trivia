@@ -128,8 +128,14 @@ def handle_question_message(conn, user_name):
 		conn (socket):
 		user_name (str): the client's username
 	"""
-	data = create_random_question(user_name)# the question generated in the protocol form
-	build_and_send_message(conn, PROTOCOL_SERVER["ok_get_questions_msg"], data)
+	cmd = PROTOCOL_SERVER["ok_get_questions_msg"]
+	data = create_random_question(user_name, conn)# the question generated in the protocol
+
+	if data is None:
+		cmd = PROTOCOL_SERVER["no_questions_msg"]
+		data = ""
+
+	build_and_send_message(conn, cmd, data)
 
 
 def handle_logout_message(conn):
@@ -142,7 +148,7 @@ def handle_logout_message(conn):
 	global flag
 	flag = False
 	logged_users.pop(conn.getpeername(), None)
-	build_and_send_message(conn,"LOGOUT_OK","")
+	build_and_send_message(conn, "LOGOUT_OK", "")
 	conn.close()
 	print("Logged Out")
 
@@ -156,9 +162,9 @@ def handle_login_message(conn, data):
 	"""
 	global users  # This is needed to access the same users dictionary from all functions
 	global logged_users	 # To be used later
+	global user_name
 	server_response = ""
 	login_details = data.split("#")
-
 	if len(login_details) != 2:
 		server_response = "Invalid Data For Login"
 
@@ -168,8 +174,9 @@ def handle_login_message(conn, data):
 			client_password = login_details[1]
 
 			if client_password == users[client_user_name][0]  :# if the password exists
+				user_name = client_user_name
 				build_and_send_message(conn, PROTOCOL_SERVER["login_ok_msg"], "")
-				logged_users[conn.getpeername()] = client_user_name # add the user to logged users dict
+				logged_users[conn.getpeername()] = (client_user_name, []) # add the user to logged users dict
 				return
 
 		server_response = "User Name Or Password Does Not Exists"
@@ -178,29 +185,32 @@ def handle_login_message(conn, data):
 	return
 
 
-def create_random_question(Username):
+def create_random_question(Username, conn):
 	"""
 	gets username and returns a question that
 	wasn't played yet
 	if there isn't such question - returns None
 	"""
-	global played_questions
+	global logged_users
+	played_questions = logged_users[conn.getpeername()][1]
 	questions = load_questions()
 	questions_Id = questions.keys()
 	for q in questions_Id:
-		if not q in played_questions:# יש פונקציה בשביל ז לא צריך לבנות לבד
-			return str(questions.get(q).get("question") + '#' + questions.get(q).get("answers")[0] + '#' + questions.get(q).get("answers")[1] + '#' + questions.get(q).get("answers")[2] + '#' + questions.get(q).get("answers")[3])
+		if q not in played_questions:# יש פונקציה בשביל ז לא צריך לבנות לבד
+			played_questions.append(q)
+			return str(str(q) + '#' + questions.get(q).get("question") + '#' + questions.get(q).get("answers")[0] + '#' + questions.get(q).get("answers")[1] + '#' + questions.get(q).get("answers")[2] + '#' + questions.get(q).get("answers")[3])
 	return None
+
 
 def handle_answer_message(conn, user_name, data):
 	global questions
 	questions = load_questions()
 	quest_id, answr = data.split("#")
-	if str(questions[quest_id]["correct"]) == answr:
+	if str(questions[int(quest_id)]["correct"]) == answr:
 		users[user_name][1] += 1
 		build_and_send_message(conn, "CORRECT_ANSWER", "")
 	else:
-		build_and_send_message(conn, "WRONG_ANSWER", str(questions[quest_id]["correct"]))
+		build_and_send_message(conn, "WRONG_ANSWER", str(questions[int(quest_id)]["correct"]))
 
 
 def handle_client_message(conn, cmd, data):

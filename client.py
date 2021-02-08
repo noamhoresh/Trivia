@@ -129,17 +129,16 @@ def play_question(conn):
     Args:
         conn (socket)
     """
-    global played_questions
     cmd, data = build_send_recv_parse(conn, PROTOCOL_CLIENT["get_question_msg"], "")  # asking for a question
 
     if cmd == PROTOCOL_SERVER["no_questions_msg"]:
         print("There are no questions left...")
+        return
 
     elif cmd == PROTOCOL_SERVER["ok_get_questions_msg"]:
         dev_data = data.split('#')  # the data of a question from the server is devided by '#'
-        played_questions.append(dev_data[0])
-        print(
-            f'Question Id: {dev_data[0]} The question: {dev_data[1]}\n1.{dev_data[2]}\n2.{dev_data[3]}\n3.{dev_data[4]}\n4.{dev_data[5]}')  # shows the question to the client
+        # played_questions.append(dev_data[0])
+        print(f'Question Id: {dev_data[0]} The question: {dev_data[1]}\n1.{dev_data[2]}\n2.{dev_data[3]}\n3.{dev_data[4]}\n4.{dev_data[5]}')  # shows the question to the client
         answ_chosen = input("Enter your selected answer number: ")
         cmd, data = build_send_recv_parse(conn, PROTOCOL_CLIENT["send_answer_msg"],
                                           dev_data[0] + '#' + answ_chosen)  # sending the client's answer
