@@ -192,6 +192,15 @@ def create_random_question(Username):
 			return str(questions.get(q).get("question") + '#' + questions.get(q).get("answers")[0] + '#' + questions.get(q).get("answers")[1] + '#' + questions.get(q).get("answers")[2] + '#' + questions.get(q).get("answers")[3])
 	return None
 
+def handle_answer_message(conn, user_name, data):
+	global questions
+	questions = load_questions()
+	quest_id, answr = data.split("#")
+	if str(questions[quest_id]["correct"]) == answr:
+		users[user_name][1] += 1
+		build_and_send_message(conn, "CORRECT_ANSWER", "")
+	else:
+		build_and_send_message(conn, "WRONG_ANSWER", str(questions[quest_id]["correct"]))
 
 
 def handle_client_message(conn, cmd, data):
