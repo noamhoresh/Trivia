@@ -19,12 +19,15 @@ users = {
     "mrhemulin": ["flowerz", 0],
     "bambababy": ["peanuts", 5, (0, 2)]
 }
+
 questions = {
     "What is the capital city of USA?|Washington DC|New York|Los Angeles|Detroit|1",
     "Who wrote the song ""Yellow submarine""?|Elvis Presley|The Beatles|Led Zeppelin|Britney Spears|2",
     "How much is 1+1?|5|6|7|2|4"
 }
+
 logged_users = {}  # a dictionary of client hostnames to usernames - will be used later
+messages_to_send = []# a list of all the messages are meant to be sent
 
 ERROR_MSG = "Error! "
 SERVER_PORT = 5678
@@ -34,8 +37,9 @@ SERVER_IP = "127.0.0.1"
 # HELPER SOCKET METHODS
 
 def build_and_send_message(conn, code, msg):
+    global messages_to_send
     message = build_message(code, msg)
-    conn.send(message.encode())
+    messages_to_send.append((conn,message))
     print("[SERVER] ", message)  # Debug print
 
 
@@ -43,7 +47,8 @@ def recv_message_and_parse(conn):
     data = conn.recv(2048).decode()
     print("Client Response: " + data)
     cmd, msg = parse_message(data)
-
+    if msg == "":# if we got empty messages we know a client had diconnected
+	    return "", ""
     if cmd is None:
         print("Problem Occurred")
 
@@ -52,6 +57,12 @@ def recv_message_and_parse(conn):
 
 # Data Loaders #
 
+def print_client_sockets():
+	"""prints all the currently logged users details
+	"""
+	global logged_users
+	for key in logged_users:
+		print(key + " " + logged_users[key])
 def load_questions():
     """
 	Loads questions bank from file	## FILE SUPPORT TO BE ADDED LATER
@@ -246,6 +257,7 @@ def main():
 	global users
 	global flag
 	global questions
+	global messages_to_send
 	flag = True
 	print("Welcome to Trivia Server!")
 	server_socket = setup_socket()
