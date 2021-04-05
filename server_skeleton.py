@@ -277,22 +277,39 @@ def main():
 			else:
 				print("new data from client!")
 				cmd, msg = recv_message_and_parse(current_socket)
-				messages_to_send.append((current_socket, cmd + '|' + msg))
+				messages_to_send.append((current_socket, str(cmd) + '|' + str(msg)))
 		
 		send_waiting_messages(w_list)
                                                       
 
-def send_waiting_messages(w_list):
-	global messages_to_send
+# def send_waiting_messages(w_list):
+# 	global messages_to_send
 
+# 	for message in messages_to_send:
+# 		current_socket = message[0]
+# 		msg_parts = split_msg(message[1])
+# 		cmd = msg_parts[0]
+# 		if msg_parts[1] == '0000':
+# 			data = ""
+# 		else:
+# 			data = msg_parts[2]
+		
+# 		print(f'CMD: {cmd}; DATA: {data}')
+# 		if current_socket in w_list:
+# 			print("good")
+# 			handle_client_message(current_socket, cmd, data)
+# 			messages_to_send.remove(message)
+
+
+def send_waiting_messages(wlist):
 	for message in messages_to_send:
-		current_socket = message[0]
-		cmd = message[1].split('|')[0]
-		data = message[1].split('|')[1]
-		print(f'CMD: {cmd}; DATA: {data}')
-		if current_socket in w_list:
-			handle_client_message(current_socket, cmd, data)
-			messages_to_send.remove(message)
+		current_socket, data = message
+		if data.split(DELIMITER)[0] in PROTOCOL_CLIENT.values():
+			handle_client_message(current_socket,data.split(DELIMITER)[0],data.split(DELIMITER)[1])
+		elif current_socket in wlist:
+			current_socket.send(data.encode())
+		messages_to_send.remove(message)
+
 
 
 if __name__ == '__main__':
