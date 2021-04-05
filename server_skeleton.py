@@ -4,6 +4,7 @@
 
 import socket
 from chatlib_skeleton import *
+import select
 
 # GLOBALS
 users = {
@@ -27,7 +28,7 @@ questions = {
 }
 
 logged_users = {}  # a dictionary of client hostnames to usernames - will be used later
-messages_to_send = []# a list of all the messages are meant to be sent
+messages_to_send = []# a list of tuples of all the messages are meant to be sent
 
 ERROR_MSG = "Error! "
 SERVER_PORT = 5678
@@ -102,9 +103,10 @@ def setup_socket():
 	"""
 	server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	server_socket.bind((SERVER_IP, SERVER_PORT))
-	server_socket.listen()
+	server_socket.listen(5)# limting the number of clients can connect
 	print("Listening for connections on port %d" % SERVER_PORT)
 	return server_socket
+
 
 
 
@@ -253,22 +255,61 @@ def handle_client_message(conn, cmd, data):
 
 
 def main():
-	# Initializes global users and questions dicionaries using load functions, will be used later
+	"""Initializes global users and questions dicionaries using load functions, will be used later"""
 	global users
 	global flag
 	global questions
 	global messages_to_send
-	flag = True
+	
 	print("Welcome to Trivia Server!")
 	server_socket = setup_socket()
+	open_client_sockets = []  # the sockets are currently connected to the server
+	flag = True
+	print("Started Server Listening Operation...")
+	while True:
+		r_list, w_list, x_list = select.select([server_socket] + open_client_sockets, open_client_sockets, [])
+		for current_socket in r_list:
 
-	client_socket, client_address = server_socket.accept()
-	print("new connection received")
+			if current_socket is server_socket:  # if it is a new client
+				(new_socket, address) = server_socket.accept()
+				print("new socket connected to server: ", new_socket.getpeername())
+				open_client_sockets.append(new_socket)
+			else:
+				print("new data from client!")
+				cmd, msg = recv_message_and_parse(current_socket)
+				messages_to_send.append((current_socket, str(cmd) + '|' + str(msg)))
+		
+		send_waiting_messages(w_list)
+                                                      
 
-	while flag:
-		#  של cmd שונה מnullאפשר לעשות אתזה עם וויל אם אתם רוצים
-		cmd, data = recv_message_and_parse(client_socket)
-		handle_client_message(client_socket, cmd, data)
+# def send_waiting_messages(w_list):
+# 	global messages_to_send
+
+# 	for message in messages_to_send:
+# 		current_socket = message[0]
+# 		msg_parts = split_msg(message[1])
+# 		cmd = msg_parts[0]
+# 		if msg_parts[1] == '0000':
+# 			data = ""
+# 		else:
+# 			data = msg_parts[2]
+		
+# 		print(f'CMD: {cmd}; DATA: {data}')
+# 		if current_socket in w_list:
+# 			print("good")
+# 			handle_client_message(current_socket, cmd, data)
+# 			messages_to_send.remove(message)
+
+
+def send_waiting_messages(wlist):
+	for message in messages_to_send:
+		current_socket, data = message
+		if data.split(DELIMITER)[0] in PROTOCOL_CLIENT.values():
+			handle_client_message(current_socket,data.split(DELIMITER)[0],data.split(DELIMITER)[1])
+		elif current_socket in wlist:
+			current_socket.send(data.encode())
+		messages_to_send.remove(message)
+
 
 
 if __name__ == '__main__':
