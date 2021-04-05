@@ -48,10 +48,10 @@ def recv_message_and_parse(conn):
     data = conn.recv(2048).decode()
     print("Client Response: " + data)
     cmd, msg = parse_message(data)
-    if msg == "":# if we got empty messages we know a client had diconnected
-	    return "", ""
-    if cmd is None:
-        print("Problem Occurred")
+    # if msg == "":# if we got empty messages we know a client had diconnected
+	#     return "", ""
+    # if cmd is None:
+    #     print("Problem Occurred")
 
     return cmd, msg
 
@@ -136,7 +136,6 @@ def handle_getscore_message(conn, username):
 
 def handle_question_message(conn, user_name):
 	"""send the client a random question
-
 	Args:
 		conn (socket):
 		user_name (str): the client's username
@@ -161,9 +160,8 @@ def handle_logout_message(conn):
 	global flag
 	flag = False
 	logged_users.pop(conn.getpeername(), None)
-	build_and_send_message(conn, "LOGOUT_OK", "")
 	conn.close()
-	print("Logged Out")
+	print("ClientLogged Out")
 
 
 def handle_login_message(conn, data):
@@ -194,7 +192,7 @@ def handle_login_message(conn, data):
 
 		server_response = "User Name Or Password Does Not Exists"
 
-	send_error(server_response)
+	send_error(conn, server_response)
 	return
 
 
@@ -251,7 +249,7 @@ def handle_client_message(conn, cmd, data):
 	elif cmd == "" and data == "":
 		conn.close()
 	else:
-		send_error()
+		send_error(conn,"??")
 
 
 def main():
@@ -269,7 +267,6 @@ def main():
 	while True:
 		r_list, w_list, x_list = select.select([server_socket] + open_client_sockets, open_client_sockets, [])
 		for current_socket in r_list:
-
 			if current_socket is server_socket:  # if it is a new client
 				(new_socket, address) = server_socket.accept()
 				print("new socket connected to server: ", new_socket.getpeername())
@@ -304,8 +301,13 @@ def main():
 def send_waiting_messages(wlist):
 	for message in messages_to_send:
 		current_socket, data = message
-		if data.split(DELIMITER)[0] in PROTOCOL_CLIENT.values():
-			handle_client_message(current_socket,data.split(DELIMITER)[0],data.split(DELIMITER)[1])
+		cmd = data.split(DELIMITER)[0]
+		msg = ""
+
+		if cmd in PROTOCOL_CLIENT.values():
+			if len(data.split(DELIMITER)) != 1:
+				msg = data.split(DELIMITER)[1]
+			handle_client_message(current_socket,cmd,msg)
 		elif current_socket in wlist:
 			current_socket.send(data.encode())
 		messages_to_send.remove(message)
