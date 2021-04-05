@@ -64,6 +64,7 @@ def print_client_sockets():
 	global logged_users
 	for key in logged_users:
 		print(key + " " + logged_users[key])
+
 def load_questions():
     """
 	Loads questions bank from file	## FILE SUPPORT TO BE ADDED LATER
@@ -94,6 +95,25 @@ def load_questions():
 
 
 # SOCKET CREATOR
+
+def get_highscore(conn):
+	global users
+	highscore = 0
+	user = ""
+	for key in users.keys():
+		if users[key][1] > highscore:
+			highscore = users[key][1]
+			user = key
+	build_and_send_message(conn,PROTOCOL_SERVER["ok_get_highscore_msg"],f'Champion:{user}\n Score:{highscore}')
+
+
+def get_logged_users(conn):
+	global logged_users
+	logged = ""
+	
+	for user in logged_users.values():
+		logged += "User:" + user[0] + "\n"
+	build_and_send_message(conn,PROTOCOL_SERVER["ok_get_logged_msg"],logged)
 
 def setup_socket():
 	"""
@@ -158,10 +178,13 @@ def handle_logout_message(conn):
 	"""
 	global logged_users
 	global flag
+	global open_client_sockets
 	flag = False
 	logged_users.pop(conn.getpeername(), None)
+	conn.send(build_message(PROTOCOL_SERVER["logout_ok_msg"], ":(").encode())
+	open_client_sockets.remove(conn) # remove the conn so it won't use it again
 	conn.close()
-	print("ClientLogged Out")
+	print("Client Logged Out...")
 
 
 def handle_login_message(conn, data):
@@ -174,6 +197,8 @@ def handle_login_message(conn, data):
 	global users  # This is needed to access the same users dictionary from all functions
 	global logged_users	 # To be used later
 	global user_name
+	global open_client_sockets
+
 	server_response = ""
 	login_details = data.split("#")
 	if len(login_details) != 2:
@@ -181,6 +206,12 @@ def handle_login_message(conn, data):
 
 	else:
 		client_user_name = login_details[0]
+		logged_usernames_list = []
+		for tup in logged_users.values():
+			logged_usernames_list.append(tup[0])
+		if client_user_name in logged_usernames_list: # if the client is already connected			
+			send_error(conn, "User Name Already Connected, Try Another User...")
+			return
 		if client_user_name in users.keys(): # if the user name exists
 			client_password = login_details[1]
 
@@ -237,7 +268,7 @@ def handle_client_message(conn, cmd, data):
 	elif cmd == "LOGOUT":
 		handle_logout_message(conn)
 	elif cmd == "LOGGED":
-		pass
+		get_logged_users(conn)
 	elif cmd == "GET_QUESTION":
 		handle_question_message(conn, user_name)
 	elif cmd == "SEND_ANSWER":
@@ -245,7 +276,7 @@ def handle_client_message(conn, cmd, data):
 	elif cmd == "MY_SCORE":
 		handle_getscore_message(conn, data.split("#")[0])# the user_name of the current user
 	elif cmd == "HIGHSCORE":
-		pass
+		get_highscore(conn)
 	elif cmd == "" and data == "":
 		conn.close()
 	else:
@@ -258,7 +289,8 @@ def main():
 	global flag
 	global questions
 	global messages_to_send
-	
+	global open_client_sockets
+
 	print("Welcome to Trivia Server!")
 	server_socket = setup_socket()
 	open_client_sockets = []  # the sockets are currently connected to the server
@@ -272,9 +304,16 @@ def main():
 				print("new socket connected to server: ", new_socket.getpeername())
 				open_client_sockets.append(new_socket)
 			else:
-				print("new data from client!")
-				cmd, msg = recv_message_and_parse(current_socket)
-				messages_to_send.append((current_socket, str(cmd) + '|' + str(msg)))
+				try:
+					cmd, msg = recv_message_and_parse(current_socket)
+					print("new data from client!")
+					messages_to_send.append((current_socket, str(cmd) + '|' + str(msg)))
+				except ConnectionResetError:
+					print("[Client Disconnected Surprisingly]")
+					logged_users.pop(current_socket.getpeername())
+					open_client_sockets.remove(current_socket)
+					# still in logged users dictionary
+				
 		
 		send_waiting_messages(w_list)
                                                       

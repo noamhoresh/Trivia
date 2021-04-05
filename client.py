@@ -89,6 +89,7 @@ def logout(conn):
     print("Logging out...")
     cmd, data = build_send_recv_parse(conn, PROTOCOL_CLIENT["logout_msg"], "")
     if cmd == "LOGOUT_OK":
+        print("SERVER RESPONSE: " + data)
         print("Logout Succeeded!")
 
 
