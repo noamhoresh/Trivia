@@ -97,15 +97,21 @@ def load_questions():
 # SOCKET CREATOR
 
 def get_highscore(conn):
-	global users
-	highscore = 0
-	user = ""
-	for key in users.keys():
-		if users[key][1] > highscore:
-			highscore = users[key][1]
-			user = key
-	build_and_send_message(conn,PROTOCOL_SERVER["ok_get_highscore_msg"],f'Champion:{user}\n Score:{highscore}')
+	
+	scores_file = open("score.txt", "r")
+	top_five_users = []
+	for line in scores_file:
+		user_name, score = line.split(":")
+		top_five_users.append((user_name, int(score)))
+	scores_file.close()
+	top_five_users.sort(key = arrange, reverse=True)
+	final_top_five = "THE TOP FIVE USERS ARE: \n"
+	for i in range(5):
+		final_top_five += top_five_users[i][0] + ": " + str(top_five_users[i][1]) + "\n"
+	build_and_send_message(conn,PROTOCOL_SERVER["ok_get_highscore_msg"],final_top_five)
 
+def arrange(tup):
+	return tup[1]
 
 def get_logged_users(conn):
 	global logged_users
@@ -151,7 +157,17 @@ def handle_getscore_message(conn, username):
 		conn (socket)
 		username (str)
 	"""
-	build_and_send_message(conn, PROTOCOL_SERVER["score_ok_msg"], str(users[username][1]))
+	scores_file = open("score.txt", "r")
+	requested_score = "-1"
+	user_name = ""
+	score = ""
+	for line in scores_file: # runs 
+		user_name, score = line.split(":")
+		if user_name == username:
+			requested_score = score
+	scores_file.close()
+
+	build_and_send_message(conn, PROTOCOL_SERVER["score_ok_msg"], requested_score)
 
 
 def handle_question_message(conn, user_name):
@@ -244,12 +260,25 @@ def create_random_question(Username, conn):
 	return None
 
 
-def handle_answer_message(conn, user_name, data):
+def handle_answer_message(conn, username, data):
 	global questions
 	questions = load_questions()
 	quest_id, answr = data.split("#")
 	if str(questions[int(quest_id)]["correct"]) == answr:
-		users[user_name][1] += 1
+		scores_file = open("score.txt", "r")
+		final_score_txt = ""
+		user_name = ""
+		score = ""
+		for line in scores_file:
+			user_name, score = line.split(":")
+			if user_name == username:
+				final_score_txt += user_name + ":" + str(int(score) + 10) + "\n"
+			else:
+				final_score_txt += line
+		scores_file.close()
+		scores_file = open("score.txt", "w")
+		scores_file.write(final_score_txt)
+		scores_file.close()
 		build_and_send_message(conn, "CORRECT_ANSWER", "")
 	else:
 		build_and_send_message(conn, "WRONG_ANSWER", str(questions[int(quest_id)]["correct"]))
