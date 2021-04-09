@@ -38,6 +38,8 @@ PROTOCOL_SERVER = {
 ERROR = None  # What is returned in case of an error
 
 
+# recieve command and data, and builds a full message with
+# the protocol's delimiter
 def build_message(cmd, data):
     if (cmd not in PROTOCOL_CLIENT.values()) and (cmd not in PROTOCOL_SERVER.values()):
         return ERROR
