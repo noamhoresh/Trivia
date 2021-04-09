@@ -1,11 +1,11 @@
-abc:25
-test:15
+abc:0
+test:0
 admin:0
-blabla:80
+blabla:0
 super:0
 super2:0
 bilby:0
-trivia_king:100
-hackerman:99
+trivia_king:0
+hackerman:0
 mrhemulin:0
 bambababy:0

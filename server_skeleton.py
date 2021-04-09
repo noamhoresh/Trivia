@@ -2,13 +2,14 @@
 # server.py
 ##############################################################################
 
+# imports
 import socket
 from chatlib_skeleton import *
 import select
 
 # GLOBALS
 users = {
-    "abc": ['123', 13],
+    "abc": ['123', 0],
     "test": ["test", 0],
     "admin": ["AaBbCcDd", 0],
     "blabla": ["hello", 0],
@@ -21,21 +22,20 @@ users = {
     "bambababy": ["peanuts", 5, (0, 2)]
 }
 
-questions = {
-    "What is the capital city of USA?|Washington DC|New York|Los Angeles|Detroit|1",
-    "Who wrote the song ""Yellow submarine""?|Elvis Presley|The Beatles|Led Zeppelin|Britney Spears|2",
-    "How much is 1+1?|5|6|7|2|4"
-}
-
 logged_users = {}  # a dictionary of client hostnames to usernames - will be used later
 messages_to_send = []# a list of tuples of all the messages are meant to be sent
 
+# constants
 ERROR_MSG = "Error! "
 SERVER_PORT = 5678
 SERVER_IP = "127.0.0.1"
 
 
-# HELPER SOCKET METHODS
+"""gets connection, code and message,
+builds a message with the protocol delimiter
+and adds it to the list of messages
+that need to be sent"""
+
 
 def build_and_send_message(conn, code, msg):
     global messages_to_send
@@ -44,14 +44,15 @@ def build_and_send_message(conn, code, msg):
     print("[SERVER] ", message)  # Debug print
 
 
+""" gets connection, than recieves data
+and parses it to command and the message itself
+returns the command and the message"""
+
+
 def recv_message_and_parse(conn):
     data = conn.recv(2048).decode()
     print("Client Response: " + data)
     cmd, msg = parse_message(data)
-    # if msg == "":# if we got empty messages we know a client had diconnected
-	#     return "", ""
-    # if cmd is None:
-    #     print("Problem Occurred")
 
     return cmd, msg
 
@@ -67,38 +68,29 @@ def print_client_sockets():
 
 def load_questions():
     """
-	Loads questions bank from file	## FILE SUPPORT TO BE ADDED LATER
-	Recieves: -
-	Returns: questions dictionary
+	Returns: game questions dictionary
 	"""
     questions = {
-        2313: {"question": "How much is 2+2", "answers": ["3", "4", "2", "1"], "correct": 2},
+        2313: {"question": "How much is 2+2?", "answers": ["3", "4", "2", "1"], "correct": 2},
         4122: {"question": "What is the capital of France?", "answers": ["Lion", "Marseille", "Paris", "Montpellier"],
-               "correct": 3}
+               "correct": 3},
+		8764: {"question": "What is the capital city of USA?", "answers": ["Washington DC", "New York", "Los Angeles", "Detroit"], "correct": 1},
+		1243: {"question": "Who wrote the song 'Yellow Submarine'?", "answers": ["Elvis Presley", "The Beatles", "Led Zeppelin", "Britney Spears"], "correct": 2},
+		4535: {"question": "How much is 1+1?", "answers": ["5", "6", "7", "2"], "correct": 4},
+		6783: {"question": "Who won the world cup in 2010?", "answers": ["Germany", "France", "Spain", "Netherlands"], "correct": 3},
+		7458: {"question": "Who is the best teacher?", "answers": ["Yossi", "Zvika", "Ruhama", "Eyal"], "correct": 2}
     }
 
     return questions
+}
 
 
-# def load_user_database():
-#     """
-# 	Loads users list from file	## FILE SUPPORT TO BE ADDED LATER
-# 	Recieves: -
-# 	Returns: user dictionary
-# 	"""
-#     users = {
-#         "test"	:	{"password" :"test" ,"score" :0 ,"questions_asked" :[]},
-# 		"yossi"		:	{"password" :"123" ,"score" :50 ,"questions_asked" :[]},
-# 		"master"	:	{"password" :"master" ,"score" :200 ,"questions_asked" :[]}
-# 	}
-# 	return users
-
-
-# SOCKET CREATOR
-
+"""builds a list of the top 5
+high scorers from the file 'score.txt',
+and sends it"""
 def get_highscore(conn):
 	
-	scores_file = open("score.txt", "r")
+	scores_file = open("score.txt", "r") # open the file
 	top_five_users = []
 	for line in scores_file:
 		user_name, score = line.split(":")
@@ -110,9 +102,11 @@ def get_highscore(conn):
 		final_top_five += top_five_users[i][0] + ": " + str(top_five_users[i][1]) + "\n"
 	build_and_send_message(conn,PROTOCOL_SERVER["ok_get_highscore_msg"],final_top_five)
 
+# helper method for the above function
 def arrange(tup):
 	return tup[1]
 
+# builds a list of users that are logged in at the moment
 def get_logged_users(conn):
 	global logged_users
 	logged = ""
@@ -120,6 +114,7 @@ def get_logged_users(conn):
 	for user in logged_users.values():
 		logged += "User:" + user[0] + "\n"
 	build_and_send_message(conn,PROTOCOL_SERVER["ok_get_logged_msg"],logged)
+
 
 def setup_socket():
 	"""
@@ -134,8 +129,6 @@ def setup_socket():
 	return server_socket
 
 
-
-
 def send_error(conn, error_msg):
 	"""
 	Send error message with given message
@@ -143,9 +136,6 @@ def send_error(conn, error_msg):
 	Returns: None
 	"""
 	build_and_send_message(conn, PROTOCOL_SERVER["error_cmd"], error_msg)
-
-
-
 
 
 #### MESSAGE HANDLING
@@ -254,13 +244,19 @@ def create_random_question(Username, conn):
 	questions = load_questions()
 	questions_Id = questions.keys()
 	for q in questions_Id:
-		if q not in played_questions:# יש פונקציה בשביל ז לא צריך לבנות לבד
+		if q not in played_questions:
 			played_questions.append(q)
 			return str(str(q) + '#' + questions.get(q).get("question") + '#' + questions.get(q).get("answers")[0] + '#' + questions.get(q).get("answers")[1] + '#' + questions.get(q).get("answers")[2] + '#' + questions.get(q).get("answers")[3])
 	return None
 
 
 def handle_answer_message(conn, username, data):
+	"""
+	Gets connection, username and data. Checks user's answer.
+	If wrong - sends wrong answer. If all ok, sends OK message and raise user's score
+	Recieves: connection, username and data
+	Returns: None (sends answer to client)
+	"""
 	global questions
 	questions = load_questions()
 	quest_id, answr = data.split("#")
@@ -291,7 +287,7 @@ def handle_client_message(conn, cmd, data):
 	Returns: None
 	"""
 	global user_name
-	global logged_users	 # To be used later
+	global logged_users
 	if cmd == "LOGIN":
 		handle_login_message(conn, data)
 	elif cmd == "LOGOUT":
@@ -345,27 +341,10 @@ def main():
 				
 		
 		send_waiting_messages(w_list)
-                                                      
-
-# def send_waiting_messages(w_list):
-# 	global messages_to_send
-
-# 	for message in messages_to_send:
-# 		current_socket = message[0]
-# 		msg_parts = split_msg(message[1])
-# 		cmd = msg_parts[0]
-# 		if msg_parts[1] == '0000':
-# 			data = ""
-# 		else:
-# 			data = msg_parts[2]
-		
-# 		print(f'CMD: {cmd}; DATA: {data}')
-# 		if current_socket in w_list:
-# 			print("good")
-# 			handle_client_message(current_socket, cmd, data)
-# 			messages_to_send.remove(message)
 
 
+"""handles more than 1 user at a time by
+sending each message at it's turn"""
 def send_waiting_messages(wlist):
 	for message in messages_to_send:
 		current_socket, data = message
@@ -378,8 +357,7 @@ def send_waiting_messages(wlist):
 			handle_client_message(current_socket,cmd,msg)
 		elif current_socket in wlist:
 			current_socket.send(data.encode())
-		messages_to_send.remove(message)
-
+		messages_to_send.remove(message) # remove message that was already sent
 
 
 if __name__ == '__main__':
