@@ -83,8 +83,13 @@ Returns: list of fields.
 def split_msg(msg):
     fields = msg.split(DELIMITER)
 
-    for i in range(len(fields)):
+    for i in range(len(fields) - 1):
         fields[i] = str(fields[i]).replace(" ", "")
+    
+    if "YOUR_QUESTION" in fields[0] or "ALL_SCORE" in fields[0] or "LOGGED_ANSWER" in fields[0]:
+        fields[-1] = str(fields[-1])
+    else:
+        fields[-1] = str(fields[-1]).replace(" ", "")
 
     return fields
 
