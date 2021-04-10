@@ -108,7 +108,7 @@ def arrange(tup):
 # builds a list of users that are logged in at the moment
 def get_logged_users(conn):
 	global logged_users
-	logged = ""
+	logged = "THE LOGGED USERS ARE: \n"
 	
 	for user in logged_users.values():
 		logged += "User:" + user[0] + "\n"
