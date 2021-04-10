@@ -82,7 +82,6 @@ def load_questions():
     }
 
     return questions
-}
 
 
 """builds a list of the top 5
